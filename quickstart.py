@@ -1,21 +1,25 @@
 from __future__ import print_function
 import httplib2
 import os
-import rfc3339
 import time
 import datetime
-import time
-import oauth2client
 import atexit
 import thread
+
+# We use tonyg-rfc3339 as our rfc3339 parser
+import rfc3339 
+
+# We also use pytz and tzlocal to handle tzinfo / localization
 import pytz
 import tzlocal
 
+# Google API support modules
+import oauth2client
 from apiclient import discovery
 from oauth2client import client
 from oauth2client import tools
 
-# Change these to dot3k if using that :)
+# pimoroni modules - change to dot3k instead of dothat if using that
 import dothat.touch as touch
 import dothat.backlight as backlight
 import dothat.lcd as lcd
@@ -270,10 +274,13 @@ class GoogleCalendar(MenuOption):
         self.nextrefresh=self.nextrefresh.replace(tzinfo=self.localtz)
 
         # Calculate start / end times and store them in datetime objects in the event dictionary
-        # If the event only has a date property, it's an all day event, so append T00:00:00Z to
-        # make it midnight instead.
+        # If an event only has a date property, it's an all day event, so it runs from midnight
+        # localtime to midnight localtime. All the RFC parsers will want a time offset if not
+        # treating a time as UTC, so we cheat slightly, and parse it as UTC first.
+        # Then we strip the tzinfo from the parsed times and localize them using pytz.
+        # It's a little dirty, but easier than doing it ourselves. 00:00 should always localize
+        # without issue as it's 01:00 - 02:00 during changeover that will be ambiguous.
         for event in self.events:
-            print (event)
             if (event['start'].get('date')):   
                 event['estart_dt']=rfc3339.parse_datetime(event['start'].get('date') + "T00:00:00Z")
                 event['estart_dt']=event['estart_dt'].replace(tzinfo=None)
@@ -288,18 +295,6 @@ class GoogleCalendar(MenuOption):
             else:
                 event['eend_dt']=rfc3339.parse_datetime(event['end'].get('dateTime'))
                 event['allday_flag']=False
-            
-            print (event['eend_dt'])
-            print (event['estart_dt'])
-
-
-            # Replace the timezones with None to make them suitable for subtracting datetime.now
-            # We've ignored the timezones provided by google, so everything should be UTC based.
-            # The tzinfo attached when parsed seems to be +00:00 anyway.
-            # TODO: Check behaviour with events crossing DST boundaries
-
-            print (event['eend_dt'].astimezone(self.localtz))
-            print (event['estart_dt'].astimezone(self.localtz))
 
             # If this event finishes earlier than the current assigned date, update it
             # At the end of the loop, we'll have the closest event end date. We use this
@@ -447,13 +442,6 @@ class GoogleCalendar(MenuOption):
             self.timetoevent=self.events[self.d_event]['estart_dt'] - datetime.datetime.now(self.localtz)
             self.timetoend=self.events[self.d_event]['eend_dt'] - datetime.datetime.now(self.localtz)
 
-            print ('Handling event data:')
-            print ('estart_dt',self.events[self.d_event]['estart_dt'])
-            print ('eend_dt', self.events[self.d_event]['eend_dt'])
-            print ('dt_now', datetime.datetime.now(self.localtz))
-            print (self.timetoevent)
-            print (self.timetoend)
-
             # Calculate days/hours/mins remaining till event start
             self.tte_days = self.timetoevent.days
             self.tte_secs = self.timetoevent.seconds
@@ -469,17 +457,12 @@ class GoogleCalendar(MenuOption):
             self.ttee_days = self.timetoend.days
             self.ttee_secs = self.timetoend.seconds
             self.ttee_hours = (self.ttee_secs // 3600)
-            print('ttee_hours', self.ttee_hours)
             # +1 minute because we're not counting seconds
             self.ttee_mins = ((self.ttee_secs % 3600) // 60) + 1
-            print('ttee_mins', self.ttee_mins)
             # Though this does introduce a kettle of worms that 1h60m is a possible result.
             if (self.ttee_mins == 60):
               self.ttee_hours = self.ttee_hours + 1
               self.ttee_mins = 0
-            print('after minute fudge')
-            print('ttee_hours', self.ttee_hours)
-            print('ttee_mins', self.ttee_mins)
 
             # Update state to reflect the event and the timestamp we've calculated for
             self.c_event = self.d_event
