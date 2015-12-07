@@ -135,7 +135,7 @@ class GoogleCalendar(MenuOption):
         self.maxevents = 9
         # Default this to the primary (account's main) calendar
         self.calendarid = 'primary'
-        # Default Backlight Colours when not doing R->G transition. Set to taste.
+        # REMOVE THIS LINE BEFORE PUBLISHING!
         self.defaultR = 0
         self.defaultG = 0
         self.defaultB = 255
@@ -152,8 +152,8 @@ class GoogleCalendar(MenuOption):
         If screensave is active, set the values to deactivate it and don't process the button
         This gives us 'tap to wake up'
         """
+        self.idletimer=time.time()
         if (self.screensave == 1):
-            self.idletimer=time.time()
             self.screensave=2
             return True
         self.d_event=self.d_event - 1
@@ -168,8 +168,8 @@ class GoogleCalendar(MenuOption):
         If screensave is active, set the values to deactivate it and don't process the button
         This gives us 'tap to wake up'
         """
+        self.idletimer=time.time()
         if (self.screensave == 1):
-            self.idletimer=time.time()
             self.screensave=2
             return True
         self.d_event=self.d_event + 1
@@ -202,10 +202,10 @@ class GoogleCalendar(MenuOption):
         Ideally, we'd time the update and only delay further if it wasn't slow, but 
         maybe later.
         """
+        self.idletimer=time.time()
         if (self.updating_calendar == 1):
             return False 
         if (self.screensave == 1):
-            self.idletimer=time.time()
             self.screensave=2
             return False
         self.updating_calendar = 1
