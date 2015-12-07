@@ -243,8 +243,7 @@ class GoogleCalendar(MenuOption):
         http = credentials.authorize(httplib2.Http())
         service = discovery.build('calendar', 'v3', http=http)
 
-        #now = datetime.datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
-        now = "2016-03-27T00:45:00Z"
+        now = datetime.datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
 
         # Just in case this throws a HTTP exception or something
         try:
