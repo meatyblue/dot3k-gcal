@@ -135,7 +135,7 @@ class GoogleCalendar(MenuOption):
         self.maxevents = 9
         # Default this to the primary (account's main) calendar
         self.calendarid = 'primary'
-        # REMOVE THIS LINE BEFORE PUBLISHING!
+        # Default Backlight Colours when not doing R->G transition. Set to taste.
         self.defaultR = 0
         self.defaultG = 0
         self.defaultB = 255
