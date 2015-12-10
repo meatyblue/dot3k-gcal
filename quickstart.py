@@ -398,7 +398,8 @@ class GoogleCalendar(MenuOption):
             return
 
         # If there's a calendar update happening, say so and do nothing else.
-        if (self.updating_calendar == 1):
+        # Don't update if the screensave is active..
+        if (self.updating_calendar == 1 and self.screensave==0):
             menu.write_option(
                 row=0,
                 text="Please Wait",
